@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Silas's Projects</title>
+  <title>CRUD App</title>
   <style>
     body {
         font-family: Arial, sans-serif;
@@ -39,21 +39,93 @@
 </head>
 <body>
 <header>
-  <h1>Welcome to Silas's GitHub Pages!</h1>
+  <h1>Welcome to the CRUD App!</h1>
 </header>
 <main>
   <section>
-    <h2>Flipping Utilities JSON Editor</h2>
-    <p>Check out my project setup, documentation, and deployment process for the Flipping Utilities JSON Editor on <a href="https://github.com/your-github-username/flipping-utilities-json-editor">GitHub</a>!</p>
+    <h2>Create Item</h2>
+    <form id="create-form">
+      <label for="create-name">Name:</label>
+      <input type="text" id="create-name" name="create-name">
+      <button type="submit">Create</button>
+    </form>
   </section>
   <section>
-    <h2>RuneLite Plugin Development</h2>
-    <p>Explore my journey in creating a RuneLite plugin for tracking GE transactions and bond conversion costs in OSRS.</p>
+    <h2>Read Items</h2>
+    <div id="read-items">
+      <!-- List of items will be displayed here -->
+    </div>
   </section>
   <section>
-    <h2>Optimizing Trading Strategies</h2>
-    <p>Learn about my analytical approach to optimizing trading strategies in OSRS based on historical price trends and volumes.</p>
+    <h2>Update Item</h2>
+    <form id="update-form">
+      <label for="update-id">Item ID:</label>
+      <input type="text" id="update-id" name="update-id">
+      <label for="update-name">New Name:</label>
+      <input type="text" id="update-name" name="update-name">
+      <button type="submit">Update</button>
+    </form>
+  </section>
+  <section>
+    <h2>Delete Item</h2>
+    <form id="delete-form">
+      <label for="delete-id">Item ID:</label>
+      <input type="text" id="delete-id" name="delete-id">
+      <button type="submit">Delete</button>
+    </form>
   </section>
 </main>
+<script>
+  // Mock data store
+  let items = [];
+
+  // Function to create an item
+  document.getElementById('create-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const itemName = document.getElementById('create-name').value;
+      if (itemName) {
+          const newItem = { id: Date.now(), name: itemName };
+          items.push(newItem);
+          displayItems();
+          document.getElementById('create-form').reset();
+      }
+  });
+
+  // Function to read and display items
+  function displayItems() {
+      const readItemsDiv = document.getElementById('read-items');
+      readItemsDiv.innerHTML = '';
+      items.forEach(item => {
+          const itemDiv = document.createElement('div');
+          itemDiv.textContent = `ID: ${item.id}, Name: ${item.name}`;
+          readItemsDiv.appendChild(itemDiv);
+      });
+  }
+
+  // Function to update an item
+  document.getElementById('update-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const itemId = parseInt(document.getElementById('update-id').value);
+      const newName = document.getElementById('update-name').value;
+      const item = items.find(item => item.id === itemId);
+      if (item && newName) {
+          item.name = newName;
+          displayItems();
+          document.getElementById('update-form').reset();
+      }
+  });
+
+  // Function to delete an item
+  document.getElementById('delete-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const itemId = parseInt(document.getElementById('delete-id').value);
+      items = items.filter(item => item.id !== itemId);
+      displayItems();
+      document.getElementById('delete-form').reset();
+  }
+
+  // Initialize display
+  displayItems();
+</script>
 </body>
 </html>
