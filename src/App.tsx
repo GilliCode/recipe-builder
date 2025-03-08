@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import RecipeUploader from './components/RecipeUploader';
 import RecipeCRUD from './components/RecipeCRUD';
 import RecipeList from './components/RecipeList';
@@ -7,8 +7,19 @@ import GitHubOAuth from './components/GitHubOAuth';
 import CreatePullRequest from './components/CreatePullRequest';
 import './App.css';
 
+interface RecipeComponent {
+  id: string;
+  quantity: string;
+}
+
+interface Recipe {
+  name: string;
+  outputs: { id: string; quantity: number }[];
+  inputs: RecipeComponent[];
+}
+
 const App: React.FC = () => {
-  const [recipes, setRecipes] = useState<any[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [token, setToken] = useState<string | null>(null);
 
   return (

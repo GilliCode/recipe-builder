@@ -1,12 +1,23 @@
-import { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent } from 'react';
+
+interface RecipeComponent {
+  id: string;
+  quantity: string;
+}
+
+interface Recipe {
+  name: string;
+  outputs: { id: string; quantity: number }[];
+  inputs: RecipeComponent[];
+}
 
 interface RecipeCRUDProps {
-  recipes: any[];
-  setRecipes: (recipes: any[]) => void;
+  recipes: Recipe[];
+  setRecipes: (recipes: Recipe[]) => void;
 }
 
 const RecipeCRUD: React.FC<RecipeCRUDProps> = ({ recipes, setRecipes }) => {
-  const [form, setForm] = useState({ name: '', id: '', components: [] as { id: string; quantity: string }[] });
+  const [form, setForm] = useState<{ name: string; id: string; components: RecipeComponent[] }>({ name: '', id: '', components: [] });
   const [numComponents, setNumComponents] = useState(1);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -14,7 +25,7 @@ const RecipeCRUD: React.FC<RecipeCRUDProps> = ({ recipes, setRecipes }) => {
     setForm({ ...form, [name]: value });
   };
 
-  const handleComponentsChange = (index: number, field: string, value: string) => {
+  const handleComponentsChange = (index: number, field: keyof RecipeComponent, value: string) => {
     const updatedComponents = [...form.components];
     updatedComponents[index] = { ...updatedComponents[index], [field]: value };
     setForm({ ...form, components: updatedComponents });
@@ -31,7 +42,7 @@ const RecipeCRUD: React.FC<RecipeCRUDProps> = ({ recipes, setRecipes }) => {
   };
 
   const handleCreate = () => {
-    const newRecipe = {
+    const newRecipe: Recipe = {
       name: form.name,
       outputs: [{ id: form.id, quantity: 1 }],
       inputs: form.components.map((component) => ({
@@ -44,7 +55,7 @@ const RecipeCRUD: React.FC<RecipeCRUDProps> = ({ recipes, setRecipes }) => {
 
   const handleUpdate = () => {
     const updatedRecipes = recipes.map((recipe) =>
-      recipe.name === form.name ? { ...recipe, ...form } : recipe
+      recipe.name === form.name ? { ...recipe, name: form.name, id: form.id, components: form.components } : recipe
     );
     setRecipes(updatedRecipes);
   };
@@ -62,7 +73,7 @@ const RecipeCRUD: React.FC<RecipeCRUDProps> = ({ recipes, setRecipes }) => {
       <input type="number" value={numComponents} onChange={handleNumComponentsChange} placeholder="Number of Components" />
 
       {form.components.map((component, index) => (
-        <div key={index}>
+        <div key={component.id}>
           <input
             name={`id-${index}`}
             value={component.id}
@@ -78,9 +89,9 @@ const RecipeCRUD: React.FC<RecipeCRUDProps> = ({ recipes, setRecipes }) => {
         </div>
       ))}
 
-      <button onClick={handleCreate}>Create</button>
-      <button onClick={handleUpdate}>Update</button>
-      <button onClick={handleDelete}>Delete</button>
+      <button type="button" onClick={() => handleCreate()}>Create</button>
+      <button type="button" onClick={() => handleUpdate()}>Update</button>
+      <button type="button" onClick={() => handleDelete()}>Delete</button>
     </div>
   );
 };

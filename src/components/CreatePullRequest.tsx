@@ -1,8 +1,20 @@
+import React from 'react';
 import axios from 'axios';
+
+interface RecipeComponent {
+  id: string;
+  quantity: string;
+}
+
+interface Recipe {
+  name: string;
+  outputs: { id: string; quantity: number }[];
+  inputs: RecipeComponent[];
+}
 
 interface CreatePullRequestProps {
   token: string;
-  newRecipes: any[];
+  newRecipes: Recipe[];
 }
 
 const CreatePullRequest: React.FC<CreatePullRequestProps> = ({ token, newRecipes }) => {
@@ -34,10 +46,12 @@ const CreatePullRequest: React.FC<CreatePullRequestProps> = ({ token, newRecipes
           { headers: { Authorization: `token ${token}` } }
         );
       })
-      .catch((error) => console.error('Error creating pull request:', error));
+      .catch((error: unknown) => {
+        console.error('Error creating pull request:', error);
+      });
   };
 
-  return <button onClick={handleCreatePR}>Create Pull Request</button>;
+  return <button type="button" onClick={handleCreatePR}>Create Pull Request</button>;
 };
 
 export default CreatePullRequest;

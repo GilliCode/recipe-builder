@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import axios from 'axios';
 
 interface GitHubOAuthProps {
@@ -22,15 +22,17 @@ const GitHubOAuth: React.FC<GitHubOAuthProps> = ({ setToken }) => {
           code,
         })
         .then((response) => {
-          const params = new URLSearchParams(response.data);
+          const params = new URLSearchParams(response.data as string);
           const token = params.get('access_token');
           setToken(token);
         })
-        .catch((error) => console.error('Error fetching access token:', error));
+        .catch((error: unknown) => {
+          console.error('Error fetching access token:', error);
+        });
     }
   }, [setToken]);
 
-  return <button onClick={handleLogin}>Login with GitHub</button>;
+  return <button type="button" onClick={handleLogin}>Login with GitHub</button>;
 };
 
 export default GitHubOAuth;
