@@ -3,33 +3,31 @@ import RecipeUploader from './components/RecipeUploader';
 import RecipeCRUD from './components/RecipeCRUD';
 import RecipeList from './components/RecipeList';
 import RecipeExporter from './components/RecipeExporter';
-import GitHubOAuth from './components/GitHubOAuth';
-import CreatePullRequest from './components/CreatePullRequest';
 import './App.css';
 
 interface RecipeComponent {
-  id: string;
-  quantity: string;
+  id: number;
+  name: string;
+  quantity: number;
 }
 
 interface Recipe {
   name: string;
-  outputs: { id: string; quantity: number }[];
+  outputs: RecipeComponent[];
   inputs: RecipeComponent[];
 }
 
 const App: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [token, setToken] = useState<string | null>(null);
+  const [status, setStatus] = useState<string>('Fetching Recipes...'); // ✅ Status State
 
   return (
     <div className="App">
-      <GitHubOAuth setToken={setToken} />
-      <RecipeUploader setRecipes={setRecipes} />
-      <RecipeCRUD recipes={recipes} setRecipes={setRecipes} />
+      <h1>{status}</h1> {/* ✅ Status updates shown here */}
+      <RecipeUploader setRecipes={setRecipes} setStatus={setStatus} />
+      <RecipeCRUD recipes={recipes} setRecipes={setRecipes} setStatus={setStatus} />
       <RecipeList recipes={recipes} />
       <RecipeExporter recipes={recipes} />
-      {token && <CreatePullRequest token={token} newRecipes={recipes} />}
     </div>
   );
 };

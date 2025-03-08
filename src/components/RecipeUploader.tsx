@@ -1,59 +1,41 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useEffect } from 'react';
 
-interface RecipeUploaderProps {
-  setRecipes: (recipes: Recipe[]) => void;
-}
-
+// ✅ Define Recipe & RecipeComponent inside this file
 interface RecipeComponent {
-  id: string;
-  quantity: string;
+  id: number;
+  name: string;
+  quantity: number;
 }
 
 interface Recipe {
   name: string;
-  outputs: { id: string; quantity: number }[];
+  outputs: RecipeComponent[];
   inputs: RecipeComponent[];
 }
 
-const RecipeUploader: React.FC<RecipeUploaderProps> = ({ setRecipes }) => {
-  const [file, setFile] = useState<File | null>(null);
+interface RecipeUploaderProps {
+  setRecipes: (recipes: Recipe[]) => void;
+  setStatus: (status: string) => void; // ✅ Updates status message
+}
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFile(e.target.files[0]);
-    }
-  };
-
-  const handleUpload = () => {
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target) {
-          const data = JSON.parse(e.target.result as string) as Recipe[];
-          setRecipes(data);
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-
+const RecipeUploader: React.FC<RecipeUploaderProps> = ({ setRecipes, setStatus }) => {
   useEffect(() => {
+    setStatus('Fetching Recipes...'); // ✅ Show status while fetching
     fetch('https://raw.githubusercontent.com/Flipping-Utilities/osrs-datasets/master/recipes.json')
-      .then((response) => response.json())
-      .then((data) => {
-        setRecipes(data as Recipe[]);
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        return response.json();
       })
-      .catch((error: unknown) => {
-        console.error('Error fetching data:', error);
+      .then((data: Recipe[]) => {
+        setRecipes(data);
+        setStatus('✅ Recipes Loaded Successfully');
+      })
+      .catch(() => {
+        setStatus('❌ Failed to load recipes');
       });
-  }, [setRecipes]);
+  }, [setRecipes, setStatus]);
 
-  return (
-    <div>
-      <input type="file" onChange={handleFileChange} />
-      <button type="button" onClick={handleUpload}>Upload</button>
-    </div>
-  );
+  return null; // ✅ No UI needed, just runs effect on mount
 };
 
 export default RecipeUploader;
