@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "npm run build && git add . && git commit -m 'chore: Deploy site to master' && git push origin master"
+      "deploy-gh": "npm run build && gh-pages -d dist",
+      "deploy-master": "git push origin master",
+      "clean": "npx rimraf node_modules package-lock.json && npm install"
   },
   "dependencies": {
     "axios": "^1.8.2",
