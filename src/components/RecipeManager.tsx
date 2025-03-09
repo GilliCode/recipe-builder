@@ -89,7 +89,11 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({ recipes, setRecipes, setS
           setSearchResults([]);
         }}
         placeholder="Search recipes..."
-        items={recipes.map(r => ({ id: r.id, name: r.name }))}
+        items={
+          searchResults.length
+            ? searchResults.map(r => ({ id: r.id, name: r.name }))
+            : recipes.map(r => ({ id: r.id, name: r.name }))
+        }
         onSelectItem={(item: Item) => {
           const recipe = recipes.find((r) => r.id === item.id);
           if (recipe) handleSelectRecipe(recipe);
