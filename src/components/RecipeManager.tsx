@@ -96,20 +96,6 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({ recipes, setRecipes, setS
         }}
       />
 
-      {searchResults.length > 0 && (
-        <ul style={{ background: '#222', color: 'white', padding: '5px', marginTop: '5px' }}>
-          {searchResults.map((recipe) => (
-            <li
-              key={recipe.id}
-              onClick={() => handleSelectRecipe(recipe)}
-              style={{ cursor: 'pointer', padding: '5px' }}
-            >
-              {recipe.name}
-            </li>
-          ))}
-        </ul>
-      )}
-
       {selectedRecipe && (
         <div style={{ marginTop: '10px' }}>
           <h3>Edit Recipe</h3>
