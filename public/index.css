@@ -1,0 +1,253 @@
+/* ============================= */
+/*       LIGHT & DARK MODES      */
+/* ============================= */
+
+/* Light Mode */
+body.light-mode {
+  background-color: #f4f4f4;
+  color: #000000;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+body.light-mode input,
+body.light-mode textarea,
+body.light-mode select,
+body.light-mode button {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: #cccccc;
+}
+
+body.light-mode table,
+body.light-mode th,
+body.light-mode td {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: #cccccc;
+}
+
+body.light-mode .modal-content {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+body.light-mode .status-message {
+  background-color: #dddddd;
+  color: #000;
+}
+
+/* Dark Mode */
+body.dark-mode {
+  background-color: #242424;
+  color: #ffffff;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select,
+body.dark-mode button {
+  background-color: #2f2f2f;
+  color: #ffffff;
+  border-color: #555555;
+}
+
+body.dark-mode table,
+body.dark-mode th,
+body.dark-mode td {
+  background-color: #2f2f2f;
+  color: #ffffff;
+  border-color: #555555;
+}
+
+body.dark-mode .status-message {
+  background-color: #333333;
+  color: #00ff00;
+}
+
+/* ============================= */
+/*         APP CONTAINER         */
+/* ============================= */
+.app-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+/* Header styling */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.title-and-version {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.main-title {
+  margin: 0;
+}
+
+.version-text {
+  font-size: 0.75em;
+  opacity: 0.8;
+}
+
+.toggle-mode-btn {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Fixed status container */
+.status-container {
+  min-height: 30px;
+  margin-bottom: 10px;
+}
+.status-message {
+  padding: 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* ============================= */
+/*           SECTIONS            */
+/* ============================= */
+.section {
+  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 8px;
+  background: #3a3a3a;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+h1, h2, h3, h4 {
+  margin: 0 0 10px 0;
+  color: #ffffff;
+}
+
+h1 {
+  text-align: center;
+  font-size: 3.2em;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+/* ============================= */
+/*         INPUTS & BUTTONS      */
+/* ============================= */
+input, textarea {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.clear-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: gray;
+  cursor: pointer;
+}
+
+button {
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid #555;
+  background-color: #3a3a3a;
+  color: #ffffff;
+}
+
+/* ============================= */
+/*         TABLE STYLES          */
+/* ============================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #555555;
+  padding: 8px;
+  text-align: left;
+  color: #ffffff;
+}
+
+th {
+  background-color: #444444;
+  font-weight: bold;
+}
+
+.recipe-table tbody tr:nth-child(even) {
+  background-color: #3a3a3a;
+}
+
+.recipe-table tbody tr:nth-child(odd) {
+  background-color: #2b2b2b;
+}
+
+/* ============================= */
+/*   RECIPE CRUD CUSTOM CLASSES  */
+/* ============================= */
+.recipe-crud-container {
+  max-width: 700px;
+  margin: 2rem auto;
+  background: #242424;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.recipe-crud-table-container {
+  border: 1px solid #555;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+/* ============================= */
+/*       RECIPE MANAGER STYLES   */
+/* ============================= */
+.recipe-manager {
+  margin-top: 30px;
+}
+
+.recipe-manager-table {
+  margin-top: 10px;
+}
+
+/* ============================= */
+/*        SHARED ELEMENTS        */
+/* ============================= */
+button {
+  font-family: inherit;
+}
+
+.inline-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}

@@ -3,6 +3,7 @@
 Recipe Builder is a user-friendly web application for creating, reading, updating, and deleting recipes. It fetches data from a dataset, allows modifications, and exports new JSON files for easy sharing and integration.
 
 ## Table of Contents
+
 - [Features](#features)
   - [Upload Recipes](#upload-recipes)
   - [Create Recipes](#create-recipes)
@@ -22,29 +23,37 @@ Recipe Builder is a user-friendly web application for creating, reading, updatin
 ## Features
 
 ### Upload Recipes
+
 Users can upload a `recipes.json` file to the application. The file is read and the recipes are displayed, allowing for further modifications.
 
 ### Create Recipes
+
 Users can create new recipes by providing details such as the recipe name, output item ID, and components (with IDs and quantities). The number of components can be specified, with a maximum of 10.
 
 ### Read Recipes
+
 The application displays all recipes in a user-friendly format, showing the output item ID, quantity, and components.
 
 ### Update Recipes
+
 Users can update existing recipes by searching for the recipe by name and modifying the details.
 
 ### Delete Recipes
+
 Users can delete existing recipes by searching for the recipe by name and removing it from the list.
 
 ### Export Recipes
+
 The updated recipes can be exported as a new `recipes.json` file, which can be downloaded and shared.
 
 ## GitHub Integration
 
 ### OAuth Login
+
 Users can log in with their GitHub account to enable the creation of pull requests directly from the application.
 
 ### Create Pull Request
+
 After logging in, users can create a pull request with the new `recipes.json` file to be added to the main dataset repository.
 
 ## Development
@@ -52,12 +61,15 @@ After logging in, users can create a pull request with the new `recipes.json` fi
 ### General Structure of Codebase
 
 **components/**
+
 - This folder contains all the React components for the application, including `RecipeUploader`, `RecipeCRUD`, `RecipeList`, `RecipeExporter`, `GitHubOAuth`, and `CreatePullRequest`.
 
 **utils/**
+
 - This folder contains utility functions used throughout the application, such as functions for handling API requests and data manipulation.
 
 **styles/**
+
 - This folder contains the CSS files for styling the application.
 
 ### Example Flow
@@ -86,8 +98,9 @@ export default tseslint.config({
   ],
   languageOptions: {
     parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
+      project: ["./tsconfig.node.json", "./tsconfig.app.json"],
       tsconfigRootDir: import.meta.dirname,
     },
   },
 });
+```
