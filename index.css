@@ -1,0 +1,350 @@
+/* ============================= */
+/*       DARK & LIGHT MODES      */
+/* ============================= */
+
+body.dark-mode {
+  background-color: #242424;
+  color: #ffffff;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+body.light-mode {
+  background-color: #f4f4f4;
+  color: #000000;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+body.light-mode input,
+body.light-mode textarea,
+body.light-mode select,
+body.light-mode button {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: #cccccc;
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select,
+body.dark-mode button {
+  background-color: #2f2f2f;
+  color: #ffffff;
+  border-color: #555555;
+}
+
+body.light-mode table,
+body.light-mode th,
+body.light-mode td {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: transparent;
+}
+
+body.dark-mode table,
+body.dark-mode th,
+body.dark-mode td {
+  background-color: #2f2f2f;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+body.light-mode .modal-content {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+body.light-mode .status-message {
+  background-color: #dddddd;
+  color: #000;
+}
+
+/* ============================= */
+/*          APP CONTAINER        */
+/* ============================= */
+
+.app-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.title-and-version {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.main-title {
+  margin: 0;
+}
+
+.version-text {
+  font-size: 0.75em;
+  opacity: 0.8;
+}
+
+.toggle-mode-btn {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* ============================= */
+/*         STATUS & TABLE        */
+/* ============================= */
+
+.status-container {
+  min-height: 30px;
+  margin-bottom: 10px;
+}
+
+.status-message {
+  padding: 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  padding: 8px;
+  vertical-align: middle;
+}
+
+th {
+  text-align: left;
+  font-weight: bold;
+  opacity: 0.9;
+}
+
+/* If you need specific spacing for the manage recipes table, add styles here */
+.manage-recipes-table th,
+.manage-recipes-table td {
+  padding: 12px 16px;
+}
+
+/* ============================= */
+/*          MODAL STYLES         */
+/* ============================= */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #2f2f2f;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ============================= */
+/*       FORM & ICON STYLES      */
+/* ============================= */
+
+.edit-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.form-group.full-width {
+  grid-column: span 2;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.icon-input-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.icon-input-icon {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+}
+
+.icon-input-field {
+  padding-left: 30px;
+  box-sizing: border-box;
+}
+
+.id-input-field {
+  width: 80px;
+}
+
+.component-add-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 15px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.form-status {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ============================= */
+/*       RECIPE MANAGER        */
+/* ============================= */
+
+.recipe-manager {
+  margin-top: 30px;
+}
+
+.recipe-manager-table {
+  margin-top: 10px;
+}
+
+.fixed-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.fixed-table.manage th:nth-child(1) {
+  width: 220px; /* Increase width for Recipe Name */
+}
+.fixed-table.manage th:nth-child(2) {
+  width: 150px;
+}
+.fixed-table.manage th:nth-child(3) {
+  width: 200px;
+}
+.fixed-table.manage th:nth-child(4) {
+  width: 80px;
+}
+.fixed-table.manage th:nth-child(5) {
+  width: 100px;
+}
+
+/* ============================= */
+/*         BUTTON STYLES         */
+/* ============================= */
+
+button {
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: none;
+  margin: 0 4px 4px 0;
+}
+
+.btn-delete {
+  background-color: #D32F2F !important;
+  color: #ffffff !important;
+}
+
+.btn-delete:hover {
+  background-color: #E57373 !important;
+}
+
+.btn-edit {
+  background-color: #1976D2 !important;
+  color: #ffffff !important;
+}
+
+.btn-edit:hover {
+  background-color: #64B5F6 !important;
+}
+
+.btn-add {
+  background-color: #388E3C !important;
+  color: #ffffff !important;
+}
+
+.btn-add:hover {
+  background-color: #66BB6A !important;
+}
+
+.btn-create {
+  background-color: #FBC02D !important;
+  color: #000000 !important;
+}
+
+.btn-create:hover {
+  background-color: #FFEB3B !important;
+}
+
+.btn-save {
+  background-color: #388E3C !important;
+  color: #ffffff !important;
+}
+
+.btn-save:hover {
+  background-color: #66BB6A !important;
+}
+
+.btn-cancel {
+  background-color: #555555 !important;
+  color: #ffffff !important;
+}
+
+.btn-cancel:hover {
+  background-color: #888888 !important;
+}
+
+.btn-download {
+  background-color: #1976D2;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: none;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.btn-download:hover {
+  background-color: #64B5F6;
+}
