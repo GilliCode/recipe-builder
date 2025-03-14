@@ -1,49 +1,150 @@
+// src/App.tsx
 import React, { useState, useEffect } from 'react';
 import RecipeCRUD from './components/RecipeCRUD';
 import RecipeManager from './components/RecipeManager';
 import { Recipe } from './types';
+import pkg from '../package.json';
+
+const version = pkg.version;
 
 const App: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [status, setStatus] = useState<string>('');
-  const [itemData, setItemData] = useState<{ id: number; name: string }[]>([]);
+  const [mappingData, setMappingData] = useState<Record<number, { name: string; icon: string | null }>>({});
+  const [darkMode, setDarkMode] = useState<boolean>(true);
+  const [externalRecipes, setExternalRecipes] = useState<Recipe[]>([]);
 
   useEffect(() => {
-    fetch('https://raw.githubusercontent.com/osrsbox/osrsbox-db/master/docs/items-complete.json')
-      .then(res => res.json())
-      .then(data => setItemData(Object.values(data).map((item: any) => ({ id: item.id, name: item.name }))))
-      .catch(err => setStatus(`⚠️ Error fetching items: ${err}`));
+    const fetchMappingData = async () => {
+      try {
+        const response = await fetch('https://prices.runescape.wiki/api/v1/osrs/mapping');
+        const data = await response.json();
+        const formattedData: Record<number, { name: string; icon: string | null }> = {};
+        data.forEach((item: { id: number; name: string; icon: string }) => {
+          formattedData[item.id] = {
+            name: item.name,
+            icon: item.icon
+              ? `https://oldschool.runescape.wiki/images/${item.icon.replace(/\s/g, '_')}`
+              : null,
+          };
+        });
+
+        if (!formattedData[995]) {
+          formattedData[995] = {
+            name: 'Coins',
+            icon: 'https://oldschool.runescape.wiki/images/Coins_1.png',
+          };
+        }
+
+        setMappingData(formattedData);
+      } catch (error) {
+        setStatus('⚠️ Error fetching item mapping data.');
+      }
+    };
+    fetchMappingData();
   }, []);
 
+  useEffect(() => {
+    const fetchExternalRecipes = async () => {
+      try {
+        const response = await fetch('https://raw.githubusercontent.com/Flipping-Utilities/osrs-datasets/master/recipes.json');
+        const data: Recipe[] = await response.json();
+        data.forEach((r) => {
+          if ((!r.id || r.id === 0) && r.outputs && r.outputs[0]) {
+            r.id = r.outputs[0].id;
+          }
+        });
+        setExternalRecipes(data);
+      } catch (error) {
+        setStatus('⚠️ Error fetching external recipes.');
+      }
+    };
+    fetchExternalRecipes();
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle('dark-mode', darkMode);
+    document.body.classList.toggle('light-mode', !darkMode);
+  }, [darkMode]);
+
+  const mergeRecipes = (external: Recipe[], local: Recipe[]): Recipe[] => {
+    const mergedMap: Record<number, Recipe> = {};
+    external.forEach(r => {
+      if (r.outputs && r.outputs[0]) {
+        mergedMap[r.outputs[0].id] = r;
+      }
+    });
+    local.forEach(r => {
+      if (r.outputs && r.outputs[0]) {
+        mergedMap[r.outputs[0].id] = r;
+      }
+    });
+    return Object.values(mergedMap);
+  };
+
+  const transformRecipe = (recipe: Recipe) => {
+    const outputItem = recipe.outputs[0];
+    const transformedOutputs = [{ id: outputItem.id, quantity: outputItem.quantity }];
+    const transformedInputs: Array<{ id: number; quantity: number; subText?: string }> = [
+      { id: outputItem.id, quantity: 1 },
+    ];
+    recipe.inputs.forEach(input => {
+      transformedInputs.push({ id: input.id, quantity: input.quantity });
+    });
+    if (recipe.subText && transformedInputs.length > 0) {
+      transformedInputs[transformedInputs.length - 1].subText = recipe.subText;
+    }
+    return {
+      name: recipe.name,
+      outputs: transformedOutputs,
+      inputs: transformedInputs,
+    };
+  };
+
+  const handleDownloadRecipes = () => {
+    const merged = mergeRecipes(externalRecipes, recipes);
+    const transformedRecipes = merged.map(transformRecipe);
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(transformedRecipes, null, 2));
+    const anchor = document.createElement('a');
+    anchor.setAttribute("href", dataStr);
+    anchor.setAttribute("download", "recipes.json");
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  };
+
   return (
-    <div>
-      <h1>Recipe Builder</h1>
-      {status && <p style={{ background: '#222', color: 'white', padding: '5px' }}>{status}</p>}
+    <div className="app-container">
+      <header className="app-header">
+        <div className="title-and-version">
+          <h1 className="main-title">Recipe Builder</h1>
+          <span className="version-text">v{version}</span>
+        </div>
+        <button className="toggle-mode-btn" onClick={() => setDarkMode(prev => !prev)}>
+          {darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        </button>
+      </header>
+
+      <div className="status-container">
+        {status && <div className="status-message">{status}</div>}
+      </div>
 
       <RecipeCRUD
-        recipes={recipes}
         setRecipes={setRecipes}
         setStatus={setStatus}
-        itemData={itemData}
+        mappingData={mappingData}
       />
 
       <RecipeManager
         recipes={recipes}
         setRecipes={setRecipes}
         setStatus={setStatus}
+        mappingData={mappingData}
       />
 
-      <h2>All Recipes:</h2>
-      {recipes.map(recipe => (
-        <div key={recipe.id}>
-          <h3>{recipe.name}</h3>
-          <ul>
-            {recipe.inputs.map(input => (
-              <li key={input.id}>{input.name} x {input.quantity}</li>
-            ))}
-          </ul>
-        </div>
-      ))}
+      <button className="btn-create" onClick={handleDownloadRecipes} style={{ marginTop: '20px' }}>
+        Download Recipes
+      </button>
     </div>
   );
 };

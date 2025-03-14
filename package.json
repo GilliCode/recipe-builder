@@ -6,22 +6,25 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build-and-dev": "npm run build && npm run dev",
     "lint": "eslint .",
     "preview": "vite preview",
-    "clean": "npx rimraf node_modules package-lock.json && npm install",
+    "clean": "npx rimraf node_modules dist package-lock.json && npm install",
     "commit": "git add . && git commit -m",
     "push": "git push origin master",
     "deploy": "npm run build && git push origin master && gh-pages -d dist"
   },
   "dependencies": {
     "axios": "^1.8.2",
+    "dependencies": "^0.0.1",
+    "fuse.js": "^7.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.21.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@eslint/js": "^9.21.0",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitejs/plugin-react-swc": "^3.8.0",
     "eslint": "^9.22.0",
@@ -31,6 +34,7 @@
     "eslint-plugin-react-x": "^1.31.0",
     "gh-pages": "^6.3.0",
     "globals": "^15.15.0",
+    "prettier": "^3.5.3",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"
