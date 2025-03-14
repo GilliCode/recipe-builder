@@ -58,9 +58,13 @@ After logging in, users can create a pull request with the new `recipes.json` fi
 
 ## Development
 
+<<<<<<< HEAD
 ### General Structure of Codebase
 
 **components/**
+=======
+### `package.json` includes useful scripts for development and deployment:
+>>>>>>> 49d5cd3 (Commit accidental deletion typo fixes)
 
 - This folder contains all the React components for the application, including `RecipeUploader`, `RecipeCRUD`, `RecipeList`, `RecipeExporter`, `GitHubOAuth`, and `CreatePullRequest`.
 
