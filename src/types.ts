@@ -3,7 +3,8 @@
  *
  * - Item: includes id, name, and icon.
  * - RecipeComponent: includes id, name, quantity, and icon.
- * - Recipe: includes id, name, inputs, outputs, and subText (Description).
+ * - Recipe: includes id, name, inputs, outputs, and subText (Description),
+ *   plus new optional customActionPrefix and customActionSuffix.
  * - RecipeCRUDProps and RecipeManagerProps: prop types for our components.
  */
 
@@ -26,6 +27,8 @@ export interface Recipe {
   subText: string;
   inputs: RecipeComponent[];
   outputs: RecipeComponent[];
+  customActionPrefix?: string;
+  customActionSuffix?: string;
 }
 
 export interface RecipeCRUDProps {

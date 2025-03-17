@@ -4,14 +4,16 @@ import ClearableInput from './ClearableInput';
 import { RecipeComponent, Item, RecipeCRUDProps } from '../types';
 import { parseKMB, formatKMB } from '../utilities/quantities';
 
-type ActionPrefix = "Creating" | "Breaking" | "Making";
-
 const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'mappingData'>> = ({
   setRecipes,
   setStatus,
   mappingData,
 }) => {
-  const [action, setAction] = useState<ActionPrefix>("Creating");
+  // Custom action inputs
+  const [customActionPrefix, setCustomActionPrefix] = useState("");
+  const [customActionSuffix, setCustomActionSuffix] = useState("");
+  const customActionPrefixRef = useRef<HTMLInputElement>(null);
+
   const [baseName, setBaseName] = useState("");
 
   // Recipe Name / Description
@@ -20,6 +22,9 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
   const [selectedRecipeName, setSelectedRecipeName] = useState<Item | null>(null);
   const [description, setDescription] = useState("");
 
+  // Output Quantity state (for recipe output in normal mode)
+  const [outputQty, setOutputQty] = useState<string>("1");
+
   // Components
   const [componentQuery, setComponentQuery] = useState("");
   const [componentResults, setComponentResults] = useState<Item[]>([]);
@@ -27,10 +32,13 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
   const [tempQty, setTempQty] = useState<string>("1");
   const [pendingComponent, setPendingComponent] = useState<Item | null>(null);
 
+  // Breaking mode toggle (for create form only)
+  const [isBreakingMode, setIsBreakingMode] = useState<boolean>(false);
+
   const recipeNameInputRef = useRef<HTMLInputElement>(null);
   const componentInputRef = useRef<HTMLInputElement>(null);
 
-  // Filter recipe names from mappingData (search by name or ID)
+  // --- FILTER RECIPE NAMES ---
   useEffect(() => {
     if (!recipeNameQuery.trim()) {
       setRecipeNameResults([]);
@@ -53,7 +61,6 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
   }, [recipeNameQuery, mappingData]);
 
   const handleSelectRecipeName = (item: Item) => {
-    // Remove the " (ID: ...)" suffix for internal processing
     const nameWithoutId = item.name.replace(/\s+\(ID:.*\)$/, '');
     setSelectedRecipeName({ ...item, name: nameWithoutId });
     setBaseName(nameWithoutId);
@@ -61,7 +68,7 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
     setStatus(`✅ Selected recipe: ${item.name}`);
   };
 
-  // Filter components from mappingData (search by name or ID)
+  // --- FILTER COMPONENTS ---
   useEffect(() => {
     if (!componentQuery.trim()) {
       setComponentResults([]);
@@ -83,13 +90,12 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
     );
   }, [componentQuery, mappingData]);
 
-  // Helper to get a component's icon
+  // Helper: get a component's icon.
   const getComponentIcon = (comp: RecipeComponent): string => {
     return comp.icon || mappingData[comp.id]?.icon || "";
   };
 
-  // Helper: Format quantity based on item ID.
-  // If the component represents coins (ID 995), display using toLocaleString plus " gp".
+  // Helper: format quantity for components.
   const formatQuantity = (comp: RecipeComponent): string => {
     if (comp.id === 995) {
       return comp.quantity.toLocaleString() + " gp";
@@ -97,10 +103,9 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
     return formatKMB(comp.quantity);
   };
 
-  // "+ Add Component" button: adds pendingComponent only on button click
+  // + Add Component button.
   const handleAddComponent = () => {
     if (pendingComponent) {
-      // Remove " (ID: ...)" from displayed name
       const compName = pendingComponent.name.replace(/\s+\(ID:.*\)$/, '');
       const qtyNum = parseKMB(tempQty);
       const newComp: RecipeComponent = {
@@ -121,14 +126,14 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
     }
   };
 
-  // Delete component function (now reinstated)
+  // Delete button for each component row.
   const handleDeleteComponent = (index: number) => {
     setComponents(prev => prev.filter((_, i) => i !== index));
     setStatus('✅ Removed component.');
     componentInputRef.current?.focus();
   };
 
-  // K/M/B quantity input handlers
+  // K/M/B quantity input handlers.
   const handleQtyBlur = (e: FocusEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     const num = parseKMB(rawValue);
@@ -142,42 +147,81 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
     setTempQty(numericValue.toString());
   };
 
-  // Combine action prefix with base name
-  const fullRecipeName = `${action} ${baseName}`.trim();
+  // Construct final recipe name.
+  const constructFinalRecipeName = () => {
+    return `${customActionPrefix.trim()} ${baseName.trim()} ${customActionSuffix.trim()}`.trim();
+  };
 
   const handleCreateRecipe = () => {
-    if (!selectedRecipeName && baseName.trim() === "") {
-      setStatus('⚠️ Please select a recipe name from the dropdown or enter a valid name.');
+    // Re-validation: in both modes, the recipe name must not be empty.
+    if (baseName.trim() === "") {
+      setStatus('⚠️ Please enter a valid recipe name.');
+      recipeNameInputRef.current?.focus();
       return;
     }
-    const recipeId = selectedRecipeName ? selectedRecipeName.id : Date.now();
-    const finalRecipeName = selectedRecipeName
-      ? `${action} ${selectedRecipeName.name.replace(/^(Creating|Breaking|Making)\s+/i, "").replace(/\s+\(ID:.*\)$/, "")}`
-      : fullRecipeName;
+    // Re-validation: the custom action prefix is mandatory regardless of mode.
+    if (!customActionPrefix.trim()) {
+      setStatus('⚠️ Please enter a custom action prefix.');
+      customActionPrefixRef.current?.focus();
+      return;
+    }
+    // Ensure at least one component is added.
+    if (components.length === 0) {
+      setStatus('⚠️ Please add at least one component.');
+      componentInputRef.current?.focus();
+      return;
+    }
 
-    const newRecipe = {
-      id: recipeId,
-      name: finalRecipeName,
-      subText: description,
-      outputs: [
-        {
-          id: selectedRecipeName ? selectedRecipeName.id : recipeId,
-          name: finalRecipeName,
-          quantity: 1,
-          icon: selectedRecipeName ? selectedRecipeName.icon : null,
-        },
-      ],
-      inputs: components.map(comp => {
-        if (!comp.name && mappingData[comp.id]) {
-          return { ...comp, name: mappingData[comp.id].name };
-        }
-        return comp;
-      }),
-    };
+    const recipeId = selectedRecipeName ? selectedRecipeName.id : Date.now();
+    const finalRecipeName = constructFinalRecipeName();
+
+    let newRecipe;
+    if (isBreakingMode) {
+      // Breaking mode: the recipe name is used as the input (set item), and components become outputs.
+      newRecipe = {
+        id: recipeId,
+        name: finalRecipeName,
+        subText: description,
+        customActionPrefix: customActionPrefix.trim(),
+        customActionSuffix: customActionSuffix.trim(),
+        inputs: [
+          {
+            id: recipeId,
+            name: finalRecipeName,
+            quantity: 1,
+            // In breaking mode, use the icon from mappingData for input.
+            icon: mappingData[recipeId]?.icon || null,
+          },
+        ],
+        outputs: components.map(comp => ({ ...comp })),
+      };
+    } else {
+      // Normal mode.
+      newRecipe = {
+        id: recipeId,
+        name: finalRecipeName,
+        subText: description,
+        customActionPrefix: customActionPrefix.trim(),
+        customActionSuffix: customActionSuffix.trim(),
+        outputs: [
+          {
+            id: selectedRecipeName ? selectedRecipeName.id : recipeId,
+            name: finalRecipeName,
+            quantity: parseKMB(outputQty),
+            icon: selectedRecipeName ? selectedRecipeName.icon : null,
+          },
+        ],
+        inputs: components.map(comp => ({
+          ...comp,
+          name: comp.name || (mappingData[comp.id] ? mappingData[comp.id].name : ""),
+        })),
+      };
+    }
 
     setRecipes(prev => [...prev, newRecipe]);
     setStatus(`✅ Created recipe: ${finalRecipeName}`);
-    // Reset form
+
+    // Reset form.
     setSelectedRecipeName(null);
     setRecipeNameQuery('');
     setBaseName('');
@@ -185,82 +229,110 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
     setComponents([]);
     setTempQty("1");
     recipeNameInputRef.current?.focus();
+
+    setCustomActionPrefix("");
+    setCustomActionSuffix("");
+    setOutputQty("1");
   };
 
   return (
     <div style={{ marginBottom: '40px' }}>
       <h2>Create Recipe</h2>
 
-      {/* Action Selection */}
-      <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <label>Action:</label>
-        <div style={{ display: 'inline-flex', gap: '1rem', alignItems: 'center' }}>
-          <label>
-            <input
-              type="radio"
-              name="action"
-              value="Creating"
-              checked={action === "Creating"}
-              onChange={() => setAction("Creating")}
-            /> Create
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="action"
-              value="Breaking"
-              checked={action === "Breaking"}
-              onChange={() => setAction("Breaking")}
-            /> Break
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="action"
-              value="Making"
-              checked={action === "Making"}
-              onChange={() => setAction("Making")}
-            /> Make
-          </label>
-        </div>
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ marginRight: '10px' }}>
+          <input
+            type="checkbox"
+            checked={isBreakingMode}
+            onChange={(e) => setIsBreakingMode(e.target.checked)}
+          />{" "}
+          Breaking Mode
+        </label>
       </div>
 
-      {/* Recipe Name & Description */}
-      <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', marginBottom: '15px' }}>
+      {/* Top Row: Custom Action Prefix, Recipe Name (ClearableInput), Custom Action Suffix, Output Quantity (normal mode only) */}
+      <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '15px' }}>
+        {/* Custom Action Prefix */}
+        <div>
+          <label style={{ display: 'block', marginBottom: '5px' }}>Custom Action Prefix</label>
+          <input
+            type="text"
+            value={customActionPrefix}
+            onChange={(e) => setCustomActionPrefix(e.target.value)}
+            placeholder="e.g., Making"
+            style={{ width: '150px', padding: '8px', borderRadius: '5px' }}
+            ref={customActionPrefixRef}
+          />
+        </div>
+
+        {/* Recipe Name (ClearableInput) */}
         <div>
           <label style={{ display: 'block', marginBottom: '5px' }}>Recipe Name</label>
           <ClearableInput
             ref={recipeNameInputRef}
             value={recipeNameQuery || baseName}
             onChange={(val) => {
-              let clean = val;
-              const prefix = action + " ";
-              if (clean.startsWith(prefix)) {
-                clean = clean.substring(prefix.length);
-              }
-              setBaseName(clean);
+              setBaseName(val);
               setRecipeNameQuery(val);
             }}
             onClear={() => {
               setRecipeNameQuery('');
               setBaseName('');
             }}
-            placeholder="Search recipe name..."
+            placeholder={isBreakingMode ? "Enter set name..." : "Search recipe name..."}
             items={recipeNameResults}
             onSelectItem={handleSelectRecipeName}
-            style={{ width: '200px' }}
+            style={{ width: '220px' }}
           />
         </div>
+
+        {/* Custom Action Suffix */}
         <div>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Description</label>
+          <label style={{ display: 'block', marginBottom: '5px' }}>Custom Action Suffix</label>
           <input
             type="text"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder="Enter description..."
-            style={{ width: '200px', padding: '3px', borderRadius: '5px' }}
+            value={customActionSuffix}
+            onChange={(e) => setCustomActionSuffix(e.target.value)}
+            placeholder="with large ammo mould"
+            style={{ width: '150px', padding: '8px', borderRadius: '5px' }}
           />
         </div>
+
+        {/* Output Quantity (only in normal mode) */}
+        {!isBreakingMode && (
+          <div>
+            <label style={{ display: 'block', marginBottom: '5px' }}>Qty x</label>
+            <input
+              type="text"
+              value={outputQty}
+              onChange={(e) => setOutputQty(e.target.value)}
+              onFocus={(e) => {
+                const numericValue = parseKMB(e.target.value);
+                e.target.value = numericValue.toString();
+                setOutputQty(numericValue.toString());
+              }}
+              onBlur={(e) => {
+                const num = parseKMB(e.target.value);
+                e.target.value = formatKMB(num);
+                setOutputQty(e.target.value);
+              }}
+              placeholder="e.g., 1"
+              style={{ width: '80px', padding: '8px', borderRadius: '5px' }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Description Field */}
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ display: 'block', marginBottom: '5px' }}>Description</label>
+        <input
+          type="text"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder="Enter description..."
+          style={{ width: '100%', maxWidth: '400px', padding: '3px', borderRadius: '5px' }}
+        />
       </div>
 
       {/* Components Section */}
@@ -288,7 +360,7 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
             value={tempQty}
             onChange={(e) => setTempQty(e.target.value)}
             onFocus={handleQtyFocus}
-            onBlur={handleQtyBlur}
+            onBlur={(e) => handleQtyBlur(e)}
             style={{ width: '80px', padding: '6px', borderRadius: '5px' }}
           />
         </div>
@@ -297,7 +369,7 @@ const RecipeCRUD: React.FC<Pick<RecipeCRUDProps, 'setRecipes' | 'setStatus' | 'm
         </button>
       </div>
 
-      {/* Components Table (ID column removed) */}
+      {/* Components Table */}
       <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '15px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>

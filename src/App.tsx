@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useState, useEffect } from 'react';
 import RecipeCRUD from './components/RecipeCRUD';
 import RecipeManager from './components/RecipeManager';
@@ -28,14 +27,13 @@ const App: React.FC = () => {
               : null,
           };
         });
-
+        // Ensure Coins exists
         if (!formattedData[995]) {
           formattedData[995] = {
             name: 'Coins',
             icon: 'https://oldschool.runescape.wiki/images/Coins_1.png',
           };
         }
-
         setMappingData(formattedData);
       } catch (error) {
         setStatus('⚠️ Error fetching item mapping data.');
@@ -82,24 +80,28 @@ const App: React.FC = () => {
     return Object.values(mergedMap);
   };
 
-  const transformRecipe = (recipe: Recipe) => {
-    const outputItem = recipe.outputs[0];
-    const transformedOutputs = [{ id: outputItem.id, quantity: outputItem.quantity }];
-    const transformedInputs: Array<{ id: number; quantity: number; subText?: string }> = [
-      { id: outputItem.id, quantity: 1 },
-    ];
-    recipe.inputs.forEach(input => {
-      transformedInputs.push({ id: input.id, quantity: input.quantity });
-    });
-    if (recipe.subText && transformedInputs.length > 0) {
-      transformedInputs[transformedInputs.length - 1].subText = recipe.subText;
-    }
-    return {
-      name: recipe.name,
-      outputs: transformedOutputs,
-      inputs: transformedInputs,
-    };
-  };
+  // Transform function for export (Copy Local Data).
+ const transformRecipe = (recipe: Recipe) => {
+   const transformedOutputs = recipe.outputs.map(out => ({
+     id: out.id,
+     quantity: out.quantity,
+   }));
+
+   const transformedInputs: Array<{ id: number; quantity: number; subText?: string }> = recipe.inputs.map(input => ({
+     id: input.id,
+     quantity: input.quantity,
+   }));
+
+   if (recipe.subText && transformedInputs.length > 0) {
+     transformedInputs[transformedInputs.length - 1].subText = recipe.subText;
+   }
+
+   return {
+     name: recipe.name,
+     outputs: transformedOutputs,
+     inputs: transformedInputs,
+   };
+ };
 
   const handleDownloadRecipes = () => {
     const merged = mergeRecipes(externalRecipes, recipes);
@@ -111,6 +113,17 @@ const App: React.FC = () => {
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
+  };
+
+  const handleCopyLocalRecipes = async () => {
+    try {
+      const transformedRecipes = recipes.map(transformRecipe);
+      const textToCopy = `\`\`\`\n${JSON.stringify(transformedRecipes, null, 2)}\n\`\`\``;
+      await navigator.clipboard.writeText(textToCopy);
+      setStatus('✅ Local recipes copied to clipboard.');
+    } catch (error) {
+      setStatus('⚠️ Failed to copy local recipes.');
+    }
   };
 
   return (
@@ -142,9 +155,14 @@ const App: React.FC = () => {
         mappingData={mappingData}
       />
 
-      <button className="btn-create" onClick={handleDownloadRecipes} style={{ marginTop: '20px' }}>
-        Download Recipes
-      </button>
+      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+        <button className="btn-create" onClick={handleDownloadRecipes}>
+          Download Recipes
+        </button>
+        <button className="btn-copy" onClick={handleCopyLocalRecipes}>
+          Copy Local Data
+        </button>
+      </div>
     </div>
   );
 };

@@ -5,6 +5,42 @@ import RecipeEditForm from './RecipeEditForm';
 import { Recipe, RecipeManagerProps, RecipeComponent, Item } from '../types';
 import { formatKMB } from '../utilities/quantities';
 
+/**
+ * Determines if a recipe is in breaking mode by checking
+ * if the recipe's name or customActionPrefix contains "breaking" (case-insensitive).
+ */
+function isBreakingRecipe(recipe: Recipe): boolean {
+  return recipe.customActionPrefix?.toLowerCase().includes("breaking")
+      || recipe.name.toLowerCase().includes("breaking");
+}
+
+/**
+ * Helper: Return a string | null icon from a given component-like object.
+ */
+function getIcon(comp: { icon: string | null; id: number }): string | null {
+  return comp.icon !== null ? comp.icon : null;
+}
+
+/**
+ * Helper: Returns the icon for displaying the recipe name in the Manage Recipes table.
+ * If it's a breaking recipe, use the first input's icon. Otherwise, use the first output's icon.
+ */
+function getRecipeDisplayIcon(recipe: Recipe, mappingData: Record<number, { name: string; icon: string | null }>): string | null {
+  if (isBreakingRecipe(recipe)) {
+    // If there's an input item, use that icon or the mapping fallback.
+    if (recipe.inputs[0]) {
+      return recipe.inputs[0].icon ?? mappingData[recipe.inputs[0].id]?.icon ?? null;
+    }
+    return null;
+  } else {
+    // Normal mode: use the first output's icon or the mapping fallback.
+    if (recipe.outputs[0]) {
+      return recipe.outputs[0].icon ?? mappingData[recipe.outputs[0].id]?.icon ?? null;
+    }
+    return null;
+  }
+}
+
 const RecipeManager: React.FC<RecipeManagerProps> = ({
   recipes,
   setRecipes,
@@ -33,11 +69,11 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({
         });
 
         const mergedMap: Record<number, Recipe> = {};
-        // Start with dataset
+        // Merge external data first
         data.forEach(r => {
           mergedMap[r.id] = r;
         });
-        // Overwrite or add local recipes
+        // Overwrite with local recipes
         recipes.forEach(r => {
           mergedMap[r.id] = r;
         });
@@ -49,22 +85,35 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({
     fetchOsrsRecipes();
   }, [recipes, setStatus]);
 
-  // Build dropdown items for searching
+  /**
+   * Build dropdown items for searching. We'll display the recipe's name
+   * and an icon that depends on whether it's a breaking recipe or not.
+   */
   const dropdownItems: Item[] = mergedRecipes
     .filter(r => {
       const lower = manageQuery.toLowerCase();
       const nameMatch = r.name.toLowerCase().includes(lower);
       const descMatch = r.subText?.toLowerCase().includes(lower) || false;
-      // Also match if any output ID includes the query
       const idMatch = (r.outputs[0]?.id.toString() || '').includes(lower);
       return nameMatch || descMatch || idMatch;
     })
     .slice(0, 10)
-    .map(r => ({
-      id: r.id,
-      name: r.name,
-      icon: r.outputs[0]?.icon || mappingData[r.outputs[0]?.id]?.icon || null,
-    }));
+    .map(r => {
+      // If it's a breaking recipe, use the input icon
+      // otherwise, use the output icon
+      let icon: string | null = null;
+      if (isBreakingRecipe(r)) {
+        icon = r.inputs[0]?.icon ?? mappingData[r.inputs[0]?.id]?.icon ?? null;
+      } else {
+        icon = r.outputs[0]?.icon ?? mappingData[r.outputs[0]?.id]?.icon ?? null;
+      }
+
+      return {
+        id: r.id,
+        name: r.name,
+        icon,
+      };
+    });
 
   const handleSelectManageRecipe = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
@@ -79,7 +128,6 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({
       setSelectedRecipe(null);
       setManageQuery('');
     }
-    // Refocus search input after deletion
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
@@ -94,22 +142,16 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({
 
   const handleSaveEdit = (updated: Recipe) => {
     setRecipes(prev => prev.map(r => (r.id === updated.id ? updated : r)));
+    if (selectedRecipe && selectedRecipe.id === updated.id) {
+      setSelectedRecipe(updated);
+      setManageQuery(updated.name);
+    }
     setStatus(`✅ Recipe updated: ${updated.name}`);
     setEditingRecipe(null);
   };
 
   const handleCancelEdit = () => {
     setEditingRecipe(null);
-  };
-
-  // Helper to get a component's icon
-  const getComponentIcon = (comp: RecipeComponent): string => {
-    return comp.icon || mappingData[comp.id]?.icon || '';
-  };
-
-  // Helper to get recipe icon from the first output
-  const getRecipeIcon = (recipe: Recipe): string => {
-    return recipe.outputs[0]?.icon || mappingData[recipe.outputs[0]?.id]?.icon || '';
   };
 
   return (
@@ -139,26 +181,24 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({
       />
 
       <div className="recipe-manager-table">
-        {/* Removed the ID column. We have 5 columns: Recipe Name, Description, Components, Quantity, Action */}
         <table className="manage-recipes-table">
           <thead>
             <tr>
               <th>Recipe Name</th>
               <th>Description</th>
-              <th>Components</th>
-              <th>Quantity</th>
+              <th>Items & Qty</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {selectedRecipe ? (
               <tr>
-                {/* RECIPE NAME */}
+                {/* RECIPE NAME COLUMN */}
                 <td>
                   <div className="icon-input-wrapper" style={{ position: 'relative' }}>
-                    {getRecipeIcon(selectedRecipe) && (
+                    {getRecipeDisplayIcon(selectedRecipe, mappingData) && (
                       <img
-                        src={getRecipeIcon(selectedRecipe)}
+                        src={getRecipeDisplayIcon(selectedRecipe, mappingData)!}
                         alt="icon"
                         className="icon-input-icon"
                         style={{ width: '16px', height: '16px' }}
@@ -170,12 +210,15 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({
                       value={selectedRecipe.name}
                       style={{
                         width: '180px',
-                        padding: getRecipeIcon(selectedRecipe) ? '3px 3px 3px 24px' : '3px',
+                        padding: getRecipeDisplayIcon(selectedRecipe, mappingData)
+                          ? '3px 3px 3px 24px'
+                          : '3px',
                       }}
                     />
                   </div>
                 </td>
-                {/* DESCRIPTION */}
+
+                {/* DESCRIPTION COLUMN */}
                 <td>
                   <input
                     type="text"
@@ -184,50 +227,66 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({
                     style={{ width: '150px', padding: '3px' }}
                   />
                 </td>
-                {/* COMPONENTS */}
+
+                {/* ITEMS & QTY COLUMN */}
                 <td>
-                  {selectedRecipe.inputs.map((inp: RecipeComponent) => {
-                    const iconUrl = getComponentIcon(inp);
-                    const displayName = inp.name || mappingData[inp.id]?.name || 'Unknown';
-                    return (
-                      <div key={inp.id} style={{ marginBottom: '4px' }}>
-                        <div className="icon-input-wrapper" style={{ position: 'relative' }}>
-                          {iconUrl && (
-                            <img
-                              src={iconUrl}
-                              alt="icon"
-                              className="icon-input-icon"
-                              style={{ width: '16px', height: '16px' }}
-                            />
-                          )}
-                          <input
-                            type="text"
-                            readOnly
-                            value={displayName}
-                            style={{
-                              width: '150px',
-                              padding: iconUrl ? '3px 3px 3px 24px' : '3px',
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </td>
-                {/* QUANTITY */}
-                <td>
-                  {selectedRecipe.inputs.map((inp: RecipeComponent) => (
-                    <div key={inp.id} style={{ marginBottom: '4px' }}>
-                      <input
-                        type="text"
-                        readOnly
-                        value={formatKMB(inp.quantity)}
-                        style={{ width: '80px', padding: '3px' }}
-                      />
+                  {isBreakingRecipe(selectedRecipe) ? (
+                    // Breaking mode: show only outputs
+                    <div>
+                      <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Outputs:</div>
+                      {selectedRecipe.outputs.map((out, idx) => {
+                        const icon = getIcon(out as RecipeComponent);
+                        return (
+                          <div
+                            key={`out-${idx}`}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}
+                          >
+                            {icon && (
+                              <img src={icon} alt="icon" style={{ width: '16px', height: '16px' }} />
+                            )}
+                            <span>{out.name} x {formatKMB(out.quantity)}</span>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
+                  ) : (
+                    // Normal mode: show single output and inputs
+                    <div>
+                      <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Output:</div>
+                      {selectedRecipe.outputs.map((out, idx) => {
+                        const icon = getIcon(out as RecipeComponent);
+                        return (
+                          <div
+                            key={`out-${idx}`}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}
+                          >
+                            {icon && (
+                              <img src={icon} alt="icon" style={{ width: '16px', height: '16px' }} />
+                            )}
+                            <span>{out.name} x {formatKMB(out.quantity)}</span>
+                          </div>
+                        );
+                      })}
+                      <div style={{ fontWeight: 'bold', margin: '8px 0 4px' }}>Inputs:</div>
+                      {selectedRecipe.inputs.map((inp, idx) => {
+                        const icon = getIcon(inp);
+                        return (
+                          <div
+                            key={`inp-${idx}`}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}
+                          >
+                            {icon && (
+                              <img src={icon} alt="icon" style={{ width: '16px', height: '16px' }} />
+                            )}
+                            <span>{inp.name} x {formatKMB(inp.quantity)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </td>
-                {/* ACTION */}
+
+                {/* ACTION COLUMN */}
                 <td>
                   <button className="btn-edit" onClick={() => handleEditRecipe(selectedRecipe.id)}>
                     Edit
@@ -246,7 +305,7 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({
               </tr>
             ) : (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center' }}>
+                <td colSpan={4} style={{ textAlign: 'center' }}>
                   No recipe selected
                 </td>
               </tr>
@@ -255,7 +314,6 @@ const RecipeManager: React.FC<RecipeManagerProps> = ({
         </table>
       </div>
 
-      {/* Edit Form (Modal) */}
       {editingRecipe && (
         <RecipeEditForm
           initialRecipe={editingRecipe}
